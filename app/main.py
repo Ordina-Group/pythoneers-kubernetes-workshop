@@ -1,8 +1,18 @@
+import asyncio
+import os
+import signal
+import fastapi
+
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from typing import List, Optional
 
-app = FastAPI()
+app = FastAPI(
+    title="Supermarket Application",
+    description="This is a supermarket application for the kubernetes workshop.",
+    version="1.0.0"
+)
 
 # Define a data model
 class Item(BaseModel):
@@ -15,19 +25,41 @@ class Item(BaseModel):
 # In-memory "database"
 items = []
 
+# Root endpoint
+@app.get("/",  include_in_schema=False, response_class=HTMLResponse)
+async def read_root():
+    # Create separate HTML file
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Custom Tab Title</title>
+        </head>
+        <body>
+            <h1>Welcome to the Kubernetes Workshop</h1>
+            <p>This is the main page. Check /docs for the swagger page</p>
+        </body>
+    </html>
+    """
+    return html_content
+# Serve the favicon
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("./ico/python.ico")
+
 # Create (POST)
-@app.post("/items/", response_model=Item)
+@app.post("/items/", response_model=Item,  description="Add a new item to the list.",)
 async def create_item(item: Item):
     items.append(item)
     return item
 
 # Read (GET all)
-@app.get("/items/", response_model=List[Item])
+@app.get("/items", response_model=List[Item], description="Overview of all items.")
 async def read_items():
     return items
 
 # Read (GET single item)
-@app.get("/items/{item_id}", response_model=Item)
+@app.get("/items/{item_id}", response_model=Item, description="Get a specific item based on ID.")
 async def read_item(item_id: int):
     for item in items:
         if item.id == item_id:
@@ -35,7 +67,7 @@ async def read_item(item_id: int):
     raise HTTPException(status_code=404, detail="Item not found")
 
 # Update (PUT)
-@app.put("/items/{item_id}", response_model=Item)
+@app.put("/items/{item_id}", response_model=Item, description="Update an existing item based on ID.")
 async def update_item(item_id: int, updated_item: Item):
     for index, item in enumerate(items):
         if item.id == item_id:
@@ -44,10 +76,29 @@ async def update_item(item_id: int, updated_item: Item):
     raise HTTPException(status_code=404, detail="Item not found")
 
 # Delete (DELETE)
-@app.delete("/items/{item_id}")
+@app.delete("/items/{item_id}", description="Delete an existing item based on ID.")
 async def delete_item(item_id: int):
     for index, item in enumerate(items):
         if item.id == item_id:
             del items[index]
             return {"message": "Item deleted successfully"}
     raise HTTPException(status_code=404, detail="Item not found")
+
+# Read (GET all)
+@app.get("/crash", description="Crash the entire service in 5 seconds.", tags=["test"] )
+async def crash_app():
+    # Countdown from 5 seconds before crashing
+    for i in range(5, 0, -1):
+        print(f"Application will crash in {i} seconds...")
+        await asyncio.sleep(1)  # Wait for 1 second
+
+    # Log the final crash message
+    print("The application is about to crash!")
+
+    os.kill(os.getpid(), signal.SIGTERM)
+    return fastapi.Response(status_code=200, content='Server shutting down...')
+
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host='localhost', port=8000, loop="asyncio")

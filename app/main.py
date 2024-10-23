@@ -1,18 +1,28 @@
-import asyncio
 import os
 import signal
-import fastapi
-
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
-from pydantic import BaseModel
+import asyncio
 from typing import List, Optional
+
+from fastapi import FastAPI, HTTPException, Response
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
+from starlette.requests import Request
+
 
 app = FastAPI(
     title="Supermarket Application",
     description="This is a supermarket application for the kubernetes workshop.",
     version="1.0.0"
 )
+
+# Mount the static folder to serve CSS and other static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Set up templates using Jinja2
+templates = Jinja2Templates(directory="templates")
+
 
 # Define a data model
 class Item(BaseModel):
@@ -27,25 +37,13 @@ items = []
 
 # Root endpoint
 @app.get("/",  include_in_schema=False, response_class=HTMLResponse)
-async def read_root():
-    # Create separate HTML file
-    html_content = """
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Custom Tab Title</title>
-        </head>
-        <body>
-            <h1>Welcome to the Kubernetes Workshop</h1>
-            <p>This is the main page. Check /docs for the swagger page</p>
-        </body>
-    </html>
-    """
-    return html_content
+async def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
 # Serve the favicon
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return FileResponse("./ico/python.ico")
+    return FileResponse("../ico/python.ico")
 
 # Create (POST)
 @app.post("/items/", response_model=Item,  description="Add a new item to the list.",)
@@ -96,7 +94,7 @@ async def crash_app():
     print("The application is about to crash!")
 
     os.kill(os.getpid(), signal.SIGTERM)
-    return fastapi.Response(status_code=200, content='Server shutting down...')
+    return Response(status_code=200, content='Server shutting down...')
 
 
 if __name__ == '__main__':

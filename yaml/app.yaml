@@ -1,0 +1,37 @@
+# fastapi-setup.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+  labels:
+    app: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+        - name: fastapi
+          image: kubernetes workshop:latest  # Replace with your image
+          ports:
+            - containerPort: 8000  # The port your FastAPI app runs on
+          env:
+            - name: DATABASE_URL
+              value: "mysql://app_user:app_password@mariadb-service:3306/app_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-service
+spec:
+  type: ClusterIP  # Change to LoadBalancer if you want external access
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: fastapi

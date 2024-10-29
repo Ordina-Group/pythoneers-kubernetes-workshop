@@ -10,6 +10,36 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from starlette.requests import Request
 
+from sqlalchemy import create_engine, Column, Integer, String, Float, exc
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = os.getenv("DATABASE_URL", "mysql://app_user:app_password@localhost:3306/app_db")
+
+# Attempt to create the SQLAlchemy engine and session
+try:
+    engine = create_engine(DATABASE_URL)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    Base = declarative_base()
+
+    # Define User model
+    class User(Base):
+        __tablename__= "inventory"
+        id = Column(Integer, primary_key=True, index=True)
+        name = Column(String(length=20), index=True)
+        description = Column(String(length=100), index=True)
+        price = Column(Float, index=True)
+        quantity = Column(Integer, index=True)
+
+        # Try to create tables if the connection is available
+    Base.metadata.create_all(bind=engine)
+
+    # If the connection is successful, set this flag to True
+    db_available = True
+
+except exc.SQLAlchemyError as e:
+    print(f"Database connection failed: {e}")
+    db_available = False
+
 
 app = FastAPI(
     title="Supermarket Application",
@@ -52,42 +82,89 @@ async def favicon():
 # Read (GET all)
 @app.get("/items", response_model=List[Item], description="Overview of all items.",  tags=["Supermarket"])
 async def read_items():
-    return items
+    if db_available:
+        # If the database is available, query from the database
+        print("You're using the database connection")
+        with SessionLocal() as db:
+            db_items = db.query(User).all()
+            return db_items
+    else:
+        # If the database is not available, return the in-memory list
+        print("You're using the local list")
+        return items
 
 
 # Read (GET single item)
 @app.get("/items/{item_id}", response_model=Item, description="Get a specific item based on ID.", tags=["Supermarket"])
 async def read_item(item_id: int):
-    for item in items:
-        if item.id == item_id:
-            return item
+    if db_available:
+        print("You're using the database connection")
+        with SessionLocal() as db:
+            item = db.query(User).filter(User.id == item_id).first()
+            if item:
+                return item
+    else:
+        print("You're using the local list")
+        for item in items:
+            if item.id == item_id:
+                return item
     raise HTTPException(status_code=404, detail="Item not found")
 
 
 # Create (POST)
 @app.post("/items/", response_model=Item,  description="Add a new item to the list.", tags=["Supermarket"])
 async def create_item(item: Item):
-    items.append(item)
-    return item
+    if db_available:
+        print("You're using the database connection")
+        with SessionLocal() as db:
+            db.add(User(**item.dict()))
+            db.commit()
+            db.refresh(item)
+            return item
+    else:
+        print("You're using the local list")
+        items.append(item)
+        return item
 
 
 # Update (PUT)
 @app.put("/items/{item_id}", response_model=Item, description="Update an existing item based on ID.", tags=["Supermarket"])
 async def update_item(item_id: int, updated_item: Item):
-    for index, item in enumerate(items):
-        if item.id == item_id:
-            items[index] = updated_item
-            return updated_item
+    if db_available:
+        print("You're using the database connection")
+        with SessionLocal() as db:
+            db_item = db.query(User).filter(User.id == item_id).first()
+            if db_item:
+                for key, value in updated_item.dict().items():
+                    setattr(db_item, key, value)
+                db.commit()
+                return db_item
+    else:
+        print("You're using the local list")
+        for index, item in enumerate(items):
+            if item.id == item_id:
+                items[index] = updated_item
+                return updated_item
     raise HTTPException(status_code=404, detail="Item not found")
 
 
 # Delete (DELETE)
 @app.delete("/items/{item_id}", description="Delete an existing item based on ID.", tags=["Supermarket"])
 async def delete_item(item_id: int):
-    for index, item in enumerate(items):
-        if item.id == item_id:
-            del items[index]
-            return {"message": "Item deleted successfully"}
+    if db_available:
+        print("You're using the database connection")
+        with SessionLocal() as db:
+            item = db.query(User).filter(User.id == item_id).first()
+            if item:
+                db.delete(item)
+                db.commit()
+                return {"message": "Item deleted successfully"}
+    else:
+        print("You're using the local list")
+        for index, item in enumerate(items):
+            if item.id == item_id:
+                del items[index]
+                return {"message": "Item deleted successfully"}
     raise HTTPException(status_code=404, detail="Item not found")
 
 

@@ -1,15 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    color: #333;
+    color: #2c3e50;
+    background: #ecf0f1;
+    line-height: 1.6;
+}
+
+header {
+    background: #34495e;
+    color: #ecf0f1;
+    padding: 20px 0;
+}
+
+header h1 {
+    font-size: 36px;
     text-align: center;
-    padding: 50px;
 }
 
-h1 {
-    color: #4CAF50;
+.hero {
+    background: url('./brick.png') no-repeat center center/cover;
+    color: #fff;
+    text-align: center;
+    padding: 100px 0;
 }
 
-p {
+.hero h2 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.content {
+    padding: 50px 0;
+    text-align: center;
+}
+
+.content h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #16a085;
+}
+
+.content p {
     font-size: 18px;
+    color: #7f8c8d;
+}
+
+.schedule-list {
+    list-style: none;
+    padding: 0;
+}
+
+.schedule-list li {
+    font-size: 24px;
+    margin: 10px 0;
+    color: #2980b9;
+}
+
+footer {
+    background: #34495e;
+    color: #ecf0f1;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    max-width: 1200px;
 }

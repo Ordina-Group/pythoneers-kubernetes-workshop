@@ -1,9 +1,9 @@
 import os
 import signal
 import asyncio
-from typing import List, Optional
+from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -22,7 +22,7 @@ try:
     Base = declarative_base()
 
     # Define User model
-    class User(Base):
+    class ItemORM(Base):
         __tablename__= "inventory"
         id = Column(Integer, primary_key=True, index=True)
         name = Column(String(length=20), index=True)
@@ -80,13 +80,13 @@ async def favicon():
 
 
 # Read (GET all)
-@app.get("/items", response_model=List[Item], description="Overview of all items.",  tags=["Supermarket"])
+@app.get("/items", response_model=list[Item], description="Overview of all items.",  tags=["Supermarket"])
 async def read_items():
     if db_available:
         # If the database is available, query from the database
         print("You're using the database connection")
         with SessionLocal() as db:
-            db_items = db.query(User).all()
+            db_items = db.query(ItemORM).all()
             return db_items
     else:
         # If the database is not available, return the in-memory list
@@ -100,7 +100,7 @@ async def read_item(item_id: int):
     if db_available:
         print("You're using the database connection")
         with SessionLocal() as db:
-            item = db.query(User).filter(User.id == item_id).first()
+            item = db.query(ItemORM).filter(ItemORM.id == item_id).first()
             if item:
                 return item
     else:
@@ -117,10 +117,11 @@ async def create_item(item: Item):
     if db_available:
         print("You're using the database connection")
         with SessionLocal() as db:
-            db.add(User(**item.dict()))
+            db_item = ItemORM(**item.dict())
+            db.add(db_item)
             db.commit()
-            db.refresh(item)
-            return item
+            db.refresh(db_item)
+            return db_item
     else:
         print("You're using the local list")
         items.append(item)
@@ -133,7 +134,7 @@ async def update_item(item_id: int, updated_item: Item):
     if db_available:
         print("You're using the database connection")
         with SessionLocal() as db:
-            db_item = db.query(User).filter(User.id == item_id).first()
+            db_item = db.query(ItemORM).filter(ItemORM.id == item_id).first()
             if db_item:
                 for key, value in updated_item.dict().items():
                     setattr(db_item, key, value)
@@ -154,7 +155,7 @@ async def delete_item(item_id: int):
     if db_available:
         print("You're using the database connection")
         with SessionLocal() as db:
-            item = db.query(User).filter(User.id == item_id).first()
+            item = db.query(ItemORM).filter(ItemORM.id == item_id).first()
             if item:
                 db.delete(item)
                 db.commit()

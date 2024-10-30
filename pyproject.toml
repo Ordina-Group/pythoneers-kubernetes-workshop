@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "pythoneers-kubernetes-workshop"
+version = "0.1.0"
+description = ""
+authors = ["Gijsbert Nutma <gijsbert.nutma@ordina.nl>",
+           "Nathan Hoogendorp <nathan.hoogendorp@ordina.nl>"]
+readme = "README.md"
+package-mode = false
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+uvicorn = "^0.32.0"
+SQLAlchemy = "^2.0.36"
+pydantic = "^2.9.2"
+Jinja2 = "^3.1.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

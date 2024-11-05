@@ -13,7 +13,9 @@ from starlette.requests import Request
 from sqlalchemy import create_engine, Column, Integer, String, Float, exc
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql://app_user:app_password@localhost:3306/app_db")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql+psycopg2://user:password@localhost:5432/database"
+)
 
 # Attempt to create the SQLAlchemy engine and session
 try:

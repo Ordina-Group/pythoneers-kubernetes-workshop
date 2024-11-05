@@ -1,8 +1,8 @@
-# Exercises part 1: The basics
+# Exercises part 1: The Kubernetes basics
 
 ## Table of contents
 
-- [Exercises part 1: The basics](#exercises-part-1-the-basics)
+- [Exercises part 1: The Kubernetes basics](#exercises-part-1-the-kubernetes-basics)
   - [Table of contents](#table-of-contents)
   - [Prepare the Kubernetes environment](#prepare-the-kubernetes-environment)
   - [1. Create an image](#1-create-an-image)

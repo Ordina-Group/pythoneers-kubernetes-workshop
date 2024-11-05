@@ -1,6 +1,6 @@
 # Pythoneers Kubernetes Workshop
 
-This workshop is designed to give you a basic understanding of Kubernetes and how to deploy a simple python application using Kubernetes. 
+This workshop is designed to give you a basic understanding of Kubernetes and how to deploy a simple python application using Kubernetes.
 
 ## Table of Contents
 
@@ -12,7 +12,7 @@ This workshop is designed to give you a basic understanding of Kubernetes and ho
       - [Create a Kubernetes cluster using Docker Desktop](#create-a-kubernetes-cluster-using-docker-desktop)
       - [Create a Kubernetes cluster using Podman Desktop (Kind)](#create-a-kubernetes-cluster-using-podman-desktop-kind)
     - [Verify your setup](#verify-your-setup)
-
+  - [The exercises](#the-exercises)
 
 ## Prerequisites
 
@@ -20,7 +20,6 @@ There are some prerequisites that you need to have installed on your machine bef
 
 1. The Kubernetes CLI (`kubectl`)
 1. A Kubernetes Cluster (Docker Desktop or Podman Desktop (Kind))
-
 
 ### Kubernetes CLI
 
@@ -32,7 +31,7 @@ Choose one of the following options to create a Kubernetes cluster on your machi
 
 #### Create a Kubernetes cluster using Docker Desktop
 
-- Download Docker desktop: https://www.docker.com/products/docker-desktop/
+- Download Docker desktop: [https://www.docker.com/products/docker-desktop/]
 - In the Docker Desktop settings, go to the Kubernetes tab
 ![image](https://github.com/user-attachments/assets/97f36d02-b930-408f-9bf9-11ad0e8f3c50)
 - Check the box to enable Kubernetes and click the "Apply & Restart" button in the bottom right corner
@@ -48,7 +47,6 @@ Choose one of the following options to create a Kubernetes cluster on your machi
 ![image](https://github.com/user-attachments/assets/cbe50619-b3f5-48fa-9616-36cae951f5f2)
 - Now click on "create" to create a cluster
 ![image](https://github.com/user-attachments/assets/492664c4-80cf-467e-9560-0407be5161b2)
-
 
 ### Verify your setup
 
@@ -76,3 +74,10 @@ kubectl get nodes
 
 A node called `docker-desktop` or `kind-control-plane` should be listed or similar.
 
+## The exercises
+
+The workshop is divided into three parts:
+
+- [Part 1](./part-1/README.md): The Kubernetes basics
+- [Part 2](./part-2/README.md): Statefulness and persistance
+- [Part 3](./part-3/README.md): Automatic scaling & ...

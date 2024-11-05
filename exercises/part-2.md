@@ -20,7 +20,10 @@ In this part we will iterate on the previous exercises and add statefulness and 
     - [A basic PersistentVolumeClaim definition](#a-basic-persistentvolumeclaim-definition)
     - [Creating a PersistentVolumeClaim](#creating-a-persistentvolumeclaim)
     - [Update the stateful set to use the PersistentVolumeClaim](#update-the-stateful-set-to-use-the-persistentvolumeclaim)
-  - [Bonus:](#bonus)
+  - [Bonus: Kubernetes resource: NetworkPolicy (docs)](#bonus-kubernetes-resource-networkpolicy-docs)
+    - [A basic NetworkPolicy definition](#a-basic-networkpolicy-definition)
+    - [Limiting traffic](#limiting-traffic)
+    - [Seeing double](#seeing-double)
   - [Cleanup](#cleanup)
   - [Summary](#summary)
 
@@ -297,19 +300,95 @@ volumes:
 
 
 
-## Bonus: 
+## Bonus: Kubernetes resource: NetworkPolicy [(docs)](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
+A `NetworkPolicy` is comparable to firewall-rules in a traditional network.
+Configuring a `NetworkPolicy` allows you to restrict the traffic to and from a pod.
+By default, all traffic within a Kubernetes cluster is allowed.
+Most cloud providers will already have default network policies in place that restrict the traffic.
+But it is always a good practice to create your own network policies to restrict the traffic even further.
+To restrict access to only those pods that need it.
 
+### A basic NetworkPolicy definition
 
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: my-network-policy <- 1
+spec:
+  podSelector: <- 2
+    matchLabels:
+      app: backend
+  policyTypes: <- 3
+  - Ingress
+  - Egress
+  ingress:
+  - from: <- 4
+    - podSelector: <- 5
+        matchLabels:
+          app: backend
+    ports: <- 6
+    - protocol: TCP
+      port: 80
+  egress: <- 7
+  - to:
+    - namespaceSelector: <- 8
+        matchLabels:
+          kubernetes.io/metadata.name: kubernetes-ws-1
+```
+
+1. The name to give to the `NetworkPolicy`.
+2. The `podSelector` field is used to select the pods to which the `NetworkPolicy` should be applied. if this field is left empty the `NetworkPolicy` will be applied to all pods in the namespace in which the `NetworkPolicy` is created.
+3. Which types of policies are set. The `NetworkPolicy` can have the following types: `Ingress`, `Egress`, or both.
+   - Egress (Outbound traffic): Restriction of traffic leaving the pod.
+   - Ingress (Inbound traffic): Restriction of traffic entering the pod.
+4. The `from` field is used to specify the traffic that is allowed to enter the pod. Multiple sources can be specified.
+5. A `podSelector` can be used to select the pods that are allowed to enter the pod. In this example, only pods with the label `app: backend` are allowed to enter the pod.
+6. `ports` can be specified to restrict the traffic to a specific port.
+7. The `egress` field is used to specify the traffic that is allowed to leave the pod. Multiple destinations can be specified.
+8. A `namespaceSelector` can be used to select the namespaces on attributes. In this example, traffic is allowed to leave the pod to pods in the namespace with the label `kubernetes.io/metadata.name: kubernetes-ws-1`.
+
+Some basic examples are given within the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/network-policies/). the following example shows how to create a `NetworkPolicy` to deny all in- and outbound traffic within the namespace:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+```
+
+### Limiting traffic
+
+Create only the fastapi application is allowed to make inbound traffic to the database. The database should not be able to make outbound traffic to any other pod in the namespace.
+
+To ensure your network policy is working correctly connect the terminal of the database pod and try to ping the fastapi pod. The ping should not be successful.
+
+<details><summary>Tip 1: How to connect to the terminal of a pod</summary>
+
+```shell
+kubectl exec -it <statefulSet-name> -- sh
+```
+
+</details>
+
+### Seeing double
+
+Create a second deployment of both the fastapi application and the database in the same namespace. By creating a NetworkPolicy, Restrict the traffic between the two deployments. Each fastapi application should only be able to connect to its own database.
 
 ## Cleanup
 
 If you want to clean up the namespace you can use the following command:
 
 ```shell
-kubectl delete namespace kubernetes-ws-1
+kubectl delete namespace kubernetes-ws-2
 ```
 
 ## Summary
 
-<!-- #TODO: Create a small summery of the current extercises -->
+<!-- #TODO: Create a small summery of the current exercises -->

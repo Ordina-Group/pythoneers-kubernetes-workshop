@@ -48,7 +48,7 @@ kubectl config set-context --current --namespace kubernetes-ws-2
 To iterate on the previous exercises we will start with the same starting point. Use the following command to create the starting point:
 
 ```shell
-kubectl apply -f starting-point-part-2.yaml # TODO: Create the starting point file
+kubectl apply -f exercises/part-2/manifest.yaml
 ```
 
 The fastapi application is now running in the `kubernetes-ws-2` namespace. You can access the application by port-forwarding the service to your local machine. just like before using the `port-forward` command

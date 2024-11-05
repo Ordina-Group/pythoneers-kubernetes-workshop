@@ -28,7 +28,6 @@
   - [Cleanup](#cleanup)
   - [Summary](#summary)
 
-
 ## Prepare the Kubernetes environment
 
 Before starting the assignments, it is useful to create a `namespace`.
@@ -54,12 +53,18 @@ kubectl config set-context --current --namespace kubernetes-ws-1
 
 ## 1. Create an image
 
-For the various assignments, we will use local container images. Your task is to use the Dockerfile in the repository to create an image tagged `app:v1`. You can use `docker build` for this.
+For the various assignments, we will use local container images. Your task is to use the Dockerfile in the repository to create an image tagged `app:v1`. You can use `docker build` or `podman build` for this.
 
-You can verify the image creation by listing all Docker images on your system.
+You can verify the image creation by listing all Docker/podman images on your system.
 
 ```shell
 docker images
+```
+
+or
+
+```shell
+podman images
 ```
 
 <details> <summary>Spoiler! </summary> 
@@ -67,6 +72,13 @@ docker images
 ```shell
 docker build . --tag app:v1 
 ```
+
+or
+
+```shell
+podman build . --tag app:v1 
+```
+
 
 </details>
 
@@ -115,7 +127,7 @@ Don't forget to use the commandline argument `--port` to expose the port opened 
 <summary>Spoiler! </summary>
 
 ```shell
-kubectl run --image app:v1 --port 8000
+kubectl run backend --image app:v1 --port 8000
 ```
 
 </details>
@@ -130,13 +142,13 @@ kubectl get pods
 
 ps. this command can be used to list all kinds of resources in a Kubernetes namespace.
 
-###  Get the generated definition of the pod
+### Get the generated definition of the pod
 
 Instead of creating a pod definition yourself, we've let Kubernetes generate one for you by using the `kubectl run` command.
 To get the full definitie Kubernetes made for you can perform the following command:
 
 ```shell
-kubectl get pod/app --output yaml
+kubectl get pod/backend --output yaml
 ```
 
 ### Connecting to the application of the pod
@@ -145,8 +157,10 @@ The application is running in the created pod. We yet haven't exposed the applic
 the `port-forward` command we can port the application to our local machine. So it is possible to interact with the application.
 
 ```shell
-kubectl port-foward pod/app 8000:8000
+kubectl port-forward pod/backend 8000:8000
 ```
+
+A timeout is added to the command to make sure the connection is closed when the pod is not running anymore.
 
 Note: usually the Kubernetes cluster is running in a separate environment and exposing an application to the outside world could be a security risk. By using the `port-forward` command you can troubleshoot and test the application without any hassle.
 
@@ -168,25 +182,28 @@ Crash the application by using the `/crash` endpoint.
 
 By crashing the application within the pod the following should happen:
 
-- The connection to the application with the `port-forward` command is lost.
-<!-- -  #TODO: status -->
-- The pod status changed from `Running` to
+- The pod status changed from `Running` to `Completed` to running again `Running`.
+- The port-forward connection can be lost, when request were made to the application while it was crashed.
+
+The pod has been restarted by Kubernetes. This is because the pod has crashed and Kubernetes has a self-healing mechanism that restarts the pod when it crashes.
 
 #### Troubleshooting
 
 The have a better understanding of what happend we can look at the logs of the pod.
 
 ```shell
-kubectl logs pod/app
+kubectl logs pod/backend
 ```
 
-As expected the `/crash` endpoint has crashed the application.
+As expected the `/crash` endpoint has crashed the application. and the pod has been restarted by Kubernetes.
 
 There has also have been some events created by the pod. To see these events you can use the following command:
 
 ```shell
-kubectl describe pod/app
+kubectl describe pod/backend
 ```
+
+You should see three events when the application has crashed. A `Pulled` event, a `Created` event, and a `Started` event.
 
 ## 3. Kubernetes resource: Deployment
 
@@ -298,7 +315,7 @@ A major advantage of using a deployment is that you can easily scale the number 
 <details><summary>Spoiler! </summary>
 
 ```shell
-kubectl scale deployment/app --replicas=5
+kubectl scale deployment/backend --replicas=5
 ```
 
 </details>
@@ -311,7 +328,7 @@ just like before use the `port-forward` command to connect to the application.
 <details><summary>Spoiler! </summary>
 
 ```shell
-kubectl port-forward deployment/app 8000:8000
+kubectl port-forward deployment/app 8000:8000 --pod-running-timeout 1s
 ```
 
 </details>
@@ -324,8 +341,8 @@ kubectl get pods --watch
 
 Crash the application by using the `/crash` endpoint.
 
-This time you should only see the pod crash that we have been connected to. The deployment will automatically restart the pod.
-still our connection to the application is lost.
+This time still only the pod we are port-forwarded to should crash. The other pods should still be running, since no /crash endpoint is called on them.
+But we would like to have a more resilient application. To make sure the application is still available when a pod crashes we can use a Kubernetes resource called a `Service`.
 
 ## 4. Kubernetes resource: Service
 
@@ -340,21 +357,23 @@ kind: Service <- 1
 metadata:
   name: app-service
 spec:
+  type: ClusterIP <- 2
   selector: <- 2
     app: backend <- 3
   ports:
-    - targetPort: 80 <- 3
+    - targetPort: 80 <- 4
 ```
 
 These are the key parts of the service definition:
 
 1. The kind of resource we are creating is a `Service`
-2. The `selector` field is used to select the pods that the service should connect to.
-3. The `targetPort` field specifies the port that the service should connect to on the pods.
+2. The `type` field specifies the type of service. In this case, it's a `ClusterIP` service. The other types are `NodePort`, `LoadBalancer`, and `ExternalName`.
+3. The `selector` field is used to select the pods that the service should connect to.
+4. The `targetPort` field specifies the port that the service should connect to on the pods.
 
 ### Creating a service
 
-Just like with the deployment create a definition file to create a service named `backend-service` that connects to the pods within the configured deployment.
+Just like with the deployment create a definition file to create a service named `backend-service` of type `LoadBalancer` that connects to the pods within the configured deployment.
 
 <details><summary>Tip</summary>
 
@@ -374,6 +393,7 @@ kind: Service
 metadata:
   name: backend-service
 spec:
+  type: LoadBalancer
   selector:
     app: backend
   ports:
@@ -386,19 +406,14 @@ kubectl create -f service.yaml
 
 </details>
 
+With the type LoadBalancer, the service will be exposed to the outside world. This way you can connect to the application without using the `port-forward` command.
+
+With Docker Desktop the loadBalanced service is exposed to your localhost, visit the application here [http://localhost:8000]
+
+
 ### Crashing the application
 
 Let's crash the application for the last time.
-
-use the `port-forward` command to connect to just created service.
-
-<details><summary>Spoiler!</summary>
-
-```shell
-kubectl port-forward service/backend-service 8000:8000
-```
-
-</details>
 
 Setup the `--watch` command to see the status of the pods.
 
@@ -408,7 +423,7 @@ kubectl get pods --watch
 
 Crash the application by using the `/crash` endpoint.
 
-This time you should only see the pods crashing and restarting. while the connection to the application is still available. This is because the service is connecting to the pods and not directly to a single pod.
+This time you should only see the pods crashing and restarting. while the connection to the application is still available. This is because the service is connecting to the pods and not directly to a single pod. as its type suggests the service load balances the connection to the pods.
 
 ## Bonus: Canary deployment
 

@@ -49,7 +49,13 @@ With the following command you can set the context of your kubectl to the just c
 kubectl config set-context --current --namespace kubernetes-ws-1
 ```
 
-> Context "docker-desktop" modified.
+if you make use of the Kind cluster trough Podman Desktop, one more step is needed to have the same experience as with Docker Desktop.
+
+```shell
+kubectl apply -f exercises/part-1/manifest.yaml
+```
+
+This will make sure we can connect to the service we will create later on.
 
 ## 1. Create an image
 
@@ -410,6 +416,7 @@ With the type LoadBalancer, the service will be exposed to the outside world. Th
 
 With Docker Desktop the loadBalanced service is exposed to your localhost, visit the application here [http://localhost:8000]
 
+With Podman Desktop the loadBalanced service is not automatically exposed, At the start we have created an ingress for you to connect to the service `backend-service`. Visit the application here [http://localhost:9090]
 
 ### Crashing the application
 
@@ -453,6 +460,12 @@ If you want to clean up the namespace you can use the following command:
 
 ```shell
 kubectl delete namespace kubernetes-ws-1
+```
+
+!NOTE: For the Podman Desktop users, the ingress created at the start of the exercises must be removed before you can go to the next part of the workshop, since it will collide with the ingress of the next part of the workshop. if you do not want to clean up the namespace you can remove the ingress with the following command:
+
+```shell
+kubectl delete -f exercises/part-1/manifest.yaml
 ```
 
 ## Summary

@@ -1,4 +1,20 @@
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: backend-service
+            port:
+              number: 8000
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,6 +23,7 @@ spec:
   selector:
     matchLabels:
       app: backend
+  replicas: 5
   template:
     metadata:
       labels:
@@ -23,10 +40,9 @@ kind: Service
 metadata:
   name: backend-service
 spec:
+  type: LoadBalancer
   selector:
     app: backend
   ports:
   - port: 8000
     targetPort: 8000
----
-

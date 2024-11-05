@@ -1,7 +1,8 @@
+ARG PYTHON_VERSION="3.12.7-alpine3.20"
 # Poetry Builder part of this image is responsible for building the application dependencies into wheels. 
 # Which will be used in the application image to install the dependencies. 
 # By doing this the final image does not need to have the build tools installed. 
-FROM python:3.12.4-alpine3.20 AS builder
+FROM python:${PYTHON_VERSION} AS builder
 
 ARG POETRY_VERION="1.8.3"
 ARG POETRY_PLUGIN_EXPORT_VERSION="1.8.0"
@@ -28,7 +29,7 @@ RUN /venvs/poetry/bin/poetry export -f requirements.txt --output requirements.tx
     && /venvs/builder/bin/pip wheel --wheel-dir "/builder/wheelhouse" -r requirements.txt
 
 # Application image
-FROM python:3.12.4-alpine3.20 AS application
+FROM python:${PYTHON_VERSION} AS application
 
 # Upgrade all alpine packages
 RUN apk upgrade --ignore alpine-baselayout

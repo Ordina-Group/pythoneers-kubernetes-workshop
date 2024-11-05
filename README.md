@@ -42,9 +42,13 @@ Choose one of the following options to create a Kubernetes cluster on your machi
 
 - Download Podman desktop: [https://podman-desktop.io/]
 - Open Podman Desktop and download Podman in the dashboard and make sure it is running:
+![image](https://github.com/user-attachments/assets/e91c8a7e-196d-4dcd-8a8f-88b5b095f1d3)
 - Next, download the Kind CLI [https://kind.sigs.k8s.io/docs/user/quick-start/#installation]
 - Thereafter, go to the settings in Podman Desktop and create a new kind cluster
+![image](https://github.com/user-attachments/assets/cbe50619-b3f5-48fa-9616-36cae951f5f2)
 - Now click on "create" to create a cluster
+![image](https://github.com/user-attachments/assets/492664c4-80cf-467e-9560-0407be5161b2)
+
 
 ### Verify your setup
 

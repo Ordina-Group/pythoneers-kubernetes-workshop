@@ -1,0 +1,56 @@
+---
+name: kubernetes-workshop
+services:
+  db:
+    image: postgres:17.0-alpine3.20
+    restart: always
+    environment:
+      POSTGRES_DB: workshop-k8s
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    healthcheck:
+      test: >-
+        pg_isready
+        --dbname=workshop-k8s
+        --username=admin
+        --host=localhost
+        --port=5432
+      interval: 60s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  backend:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://admin:admin@db:5432/workshop-k8s
+    ports:
+      - 8000:8000
+    develop:
+      watch:
+        # rebuild image and recreate service
+        - path: ./app
+          target: /app
+          action: sync+restart
+        # rebuild image and recreate service
+        - path: ./poetry.lock
+          action: rebuild
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: >-
+        wget
+        --no-verbose
+        --tries=1
+        --spider
+        http://127.0.0.1:8000 || exit 1
+      interval: 60s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+
+volumes:
+  db-data:
+    name: "${COMPOSE_PROJECT_NAME}-db-data"

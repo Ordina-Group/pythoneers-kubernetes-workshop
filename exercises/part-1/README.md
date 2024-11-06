@@ -11,6 +11,7 @@
     - [Creating a Pod](#creating-a-pod)
     - [Listing resources](#listing-resources)
     - [Get the generated definition of the pod](#get-the-generated-definition-of-the-pod)
+    - [Editing a Kubernetes resource](#editing-a-kubernetes-resource)
     - [Connecting to the application of the pod](#connecting-to-the-application-of-the-pod)
     - [A crashed pod](#a-crashed-pod)
       - [Troubleshooting](#troubleshooting)
@@ -40,8 +41,6 @@ Use the following command to create a namespace named: `kubernetes_ws_1`
 ```shell
 kubectl create namespace kubernetes-ws-1
 ```
-
-> namespace/kubernetes-ws-1 created
 
 With the following command you can set the context of your kubectl to the just created namespace. This way you don't have to specify the namespace in every command.
 
@@ -152,6 +151,32 @@ To get the full definitie Kubernetes made for you can perform the following comm
 ```shell
 kubectl get pod/backend --output yaml
 ```
+
+### Editing a Kubernetes resource
+
+With the `kubectl edit` command you can edit the definition of a resource. This can be useful when you want to change something in the pod definition. Note not all fields are changeable.
+
+Use the kubectl edit command to edit the pod you've created earlier. add a label to the pod with the key `foo` and the value `bar`.
+
+<details><summary>Spoiler!</summary>
+
+```shell
+kubectl edit pod/backend
+```
+
+Labels can be added to the metadata field of the pod definition.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: backend
+  labels:
+    foo: bar
+...
+```
+
+</details>
 
 ### Connecting to the application of the pod
 

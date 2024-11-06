@@ -31,7 +31,7 @@ services:
       watch:
         # rebuild image and recreate service
         - path: ./app
-          target: /app
+          target: /src/app
           action: sync+restart
         # rebuild image and recreate service
         - path: ./poetry.lock

@@ -4,7 +4,7 @@ ARG PYTHON_VERSION="3.12.7-alpine3.20"
 # By doing this the final image does not need to have the build tools installed. 
 FROM python:${PYTHON_VERSION} AS builder
 
-ARG POETRY_VERION="1.8.3"
+ARG POETRY_VERSION="1.8.4"
 ARG POETRY_PLUGIN_EXPORT_VERSION="1.8.0"
 
 RUN apk add --no-cache \
@@ -16,7 +16,7 @@ RUN apk add --no-cache \
     && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile=minimal \
     && source "$HOME/.cargo/env" \
     && python -m venv /venvs/poetry \
-    && /venvs/poetry/bin/pip install "poetry~=${POETRY_VERION}" "poetry-plugin-export~=${POETRY_PLUGIN_EXPORT_VERSION}" \
+    && /venvs/poetry/bin/pip install "poetry~=${POETRY_VERSION}" "poetry-plugin-export~=${POETRY_PLUGIN_EXPORT_VERSION}" \
     && mkdir -p "/builder/wheelhouse"
 
 COPY ["pyproject.toml", "poetry.lock", "/builder/"]
@@ -38,7 +38,7 @@ RUN apk upgrade --ignore alpine-baselayout
 RUN adduser --disabled-password --uid 1000 pythonuser
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /src
 
 # Create and Activate Python Virtual Environment
 RUN python -m venv /venv
@@ -46,11 +46,12 @@ ENV PATH="/venv/bin:$PATH"
 
 # Install application dependencies from wheelhouse into the python virtual environment
 COPY --from=builder ["/builder/wheelhouse", "/builder/wheelhouse"]
+
 RUN pip install -U pip \
     && pip install --no-index --no-deps /builder/wheelhouse/*.whl
 
 # Copy the application code into the container
-COPY app /app
+COPY app /src/app
 COPY ico/ /ico
 
 # Expose the correct port
@@ -60,4 +61,4 @@ EXPOSE 8000
 USER pythonuser
 
 # Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

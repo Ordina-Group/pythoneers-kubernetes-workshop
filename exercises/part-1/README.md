@@ -49,14 +49,6 @@ With the following command you can set the context of your kubectl to the just c
 kubectl config set-context --current --namespace kubernetes-ws-1
 ```
 
-if you make use of the Kind cluster trough Podman Desktop, one more step is needed to have the same experience as with Docker Desktop.
-
-```shell
-kubectl apply -f exercises/part-1/manifest.yaml
-```
-
-This will make sure we can connect to the service we will create later on.
-
 ## 1. Create an image
 
 For the various assignments, we will use local container images. Your task is to use the Dockerfile in the repository to create an image tagged `app:v1`. You can use `docker build` or `podman build` for this.
@@ -460,12 +452,6 @@ If you want to clean up the namespace you can use the following command:
 
 ```shell
 kubectl delete namespace kubernetes-ws-1
-```
-
-!NOTE: For the Podman Desktop users, the ingress created at the start of the exercises must be removed before you can go to the next part of the workshop, since it will collide with the ingress of the next part of the workshop. if you do not want to clean up the namespace you can remove the ingress with the following command:
-
-```shell
-kubectl delete -f exercises/part-1/manifest.yaml
 ```
 
 ## Summary

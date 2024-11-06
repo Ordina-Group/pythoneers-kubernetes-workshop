@@ -80,6 +80,10 @@ podman build . --tag app:v1
 
 </details>
 
+With podman desktop you will need to push the image to the Kind Cluster. Go to images tab -> locate the image you've build -> triple dots / hamburger menu -> "Push image to Kind cluster"
+![image](https://github.com/user-attachments/assets/8d4f29de-8c6e-4518-9966-8bb274c42fdc)
+
+
 ## 2. Kubernetes resource: Pod
 
 A Pod is the smallest and simplest Kubernetes object. It represents a single instance of a running process in your cluster. Pods contain one or more containers, such as Docker containers.

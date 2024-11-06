@@ -78,6 +78,6 @@ A node called `docker-desktop` or `kind-control-plane` should be listed or simil
 
 The workshop is divided into three parts:
 
-- [Part 1](./part-1/README.md): The Kubernetes basics
-- [Part 2](./part-2/README.md): Statefulness and persistance
-- [Part 3](./part-3/README.md): Automatic scaling & ...
+- [Part 1](./exercises/part-1/README.md): Pods and Deployments
+- [Part 2](./exercises/part-2/README.md): Services and ConfigMaps & Secrets
+- [Part 3](./exercises/part-3/README.md): Statefulness and persistance

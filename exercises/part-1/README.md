@@ -1,8 +1,8 @@
-# Exercises part 1: The Kubernetes basics
+# Exercises part 1: Pods and Deployments
 
 ## Table of contents
 
-- [Exercises part 1: The Kubernetes basics](#exercises-part-1-the-kubernetes-basics)
+- [Exercises part 1: Pods and Deployments](#exercises-part-1-pods-and-deployments)
   - [Table of contents](#table-of-contents)
   - [Prepare the Kubernetes environment](#prepare-the-kubernetes-environment)
   - [1. Create an image](#1-create-an-image)

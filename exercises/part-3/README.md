@@ -10,11 +10,9 @@ In this part we will iterate on the previous exercises and add statefulness and 
   - [1. Prepare the starting point](#1-prepare-the-starting-point)
   - [2. Kubernetes resource: StatefulSet](#2-kubernetes-resource-statefulset)
     - [Basic StatefulSet definition](#basic-statefulset-definition)
-    - [Setting Environment Variables](#setting-environment-variables)
-      - [`env` field](#env-field)
-      - [ConfigMap](#configmap)
-      - [Secret](#secret)
     - [Create a statefulset for the database of the fastapi app](#create-a-statefulset-for-the-database-of-the-fastapi-app)
+    - [Create a service for the statefulSet](#create-a-service-for-the-statefulset)
+    - [Connecting the backend app to the database](#connecting-the-backend-app-to-the-database)
     - [A loss of data](#a-loss-of-data)
   - [3. Kubernetes resource: PersistentVolumeClaim](#3-kubernetes-resource-persistentvolumeclaim)
     - [A basic PersistentVolumeClaim definition](#a-basic-persistentvolumeclaim-definition)
@@ -106,86 +104,6 @@ spec:
 A VolumeClaimTemplate is an optional field in a StatefulSet definition which makes it easy to create a PersistentVolumeClaim for each pod in the StatefulSet. The PersistentVolumeClaim is automatically created when the StatefulSet is created.
 For the following exercises we will created the PersistentVolumeClaim manually. but in a real-world scenario you would use the `volumeClaimTemplates` field to create the PersistentVolumeClaims automatically.
 
-### Setting Environment Variables
-
-To be able to connect to the database from the fastapi app some environment variables need to be set. There are a few ways to set environment variables in a Kubernetes pod. Trough the `env` field in the container definition, using a `ConfigMap`, or using a `Secret`. In this exercise your are free to choose which method you want to use. Note it increases the complexity of the exercise if you use a `ConfigMap` or `Secret`, if you want a challenge you can use these resources. If you want to keep it simple you can use the `env` field in the container definition.
-
-#### `env` field
-
-One way is to use the `env` field in the container definition.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-pod
-spec:
-  containers:
-  - name: my-container
-    image: my-image
-    env:
-    - name: FOO
-      value: bar
-```
-
-#### ConfigMap
-
-A `ConfigMap` is a Kubernetes resource that is used to store configuration data. A `ConfigMap` can be used to store environment variables that are used by multiple pods.
-
-```yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: my-config
-data:
-  FOO: bar
-```
-
-To use all set environment variables in a `ConfigMap` in a pod you can use the `envFrom` field in the container definition.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-pod  
-spec:
-  containers:
-  - name: my-container
-    image: my-image
-    envFrom:
-    - configMapRef:
-      name: my-config
-```
-
-#### Secret
-
-A `Secret` is a Kubernetes resource that is used to store sensitive data. A `Secret` can be used to store environment variables that are used by multiple pods. A `Secret` is similar to a `ConfigMap`, but the data in a `Secret` is stored in base64 encoded format.
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: my-secret
-data:
-  FOO: Rk9P
-```
-
-To use all set environment variables in a `Secret` in a pod you can use the `envFrom` field in the container definition.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-pod  
-spec:
-  containers:
-  - name: my-container
-    image: my-image
-    envFrom:
-    - configMapRef:
-      name: my-secret
-```
-
 ### Create a statefulset for the database of the fastapi app
 
 Create a stateful set for the database of the fastapi app. Use the following information to create the stateful set:
@@ -220,17 +138,33 @@ spec:
         <todo: fill in the container definition>
 ```
 
-In the template above a volume named `data` is defined. This volume should be mounted to the container at the path `/var/lib/postgresql/data`.
+### Create a service for the statefulSet
 
-After you have created the stateful set you can check if the stateful set is running by using the `kubectl get statefulset` command.
+Create a service for the statefulSet to make it accessible from the fastapi app. Since this service does not need to be accessible from outside the cluster use a `ClusterIP` service with the name `db-service`.
 
-Check if you can connect to the database from the fastapi app. You can use the following command to port-forward the fastapi service to your local machine:
+<details><summary>Spoiler!</summary>
 
-```shell
-kubectl port-forward service/backend 8000:8000
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+spec:
+  selector:
+    app: db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
 ```
 
-Make use of the provided endpoints and try to add a new item to the database using the fastapi app. See if the item is added to the database if so the stateful set is working correctly.
+</details>
+
+### Connecting the backend app to the database
+
+The backend deployment needs a revision to connect to the database. Add the environment variable `DATABASE_URL` to the backend deployment with the following pattern `postgresql://<user>:<password>@db-service:5432/<database>` fill in the correct values used in the statefulSet
+
+When the backend deployment is updated the fastapi application should be able to connect to the database. Try to create a new item in the fastapi application to see if the connection is working.
 
 ### A loss of data
 

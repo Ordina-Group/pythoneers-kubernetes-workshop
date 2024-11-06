@@ -9,6 +9,10 @@
     - [A basic service definition](#a-basic-service-definition)
     - [Creating a service](#creating-a-service)
     - [Crashing the application](#crashing-the-application)
+  - [2. Environment variables with ConfigMaps and Secrets](#2-environment-variables-with-configmaps-and-secrets)
+    - [`env` field](#env-field)
+    - [ConfigMap](#configmap)
+    - [Secret](#secret)
   - [Bonus: Canary deployment](#bonus-canary-deployment)
     - [Concept of a canary deployment](#concept-of-a-canary-deployment)
   - [Cleanup](#cleanup)
@@ -124,6 +128,87 @@ kubectl get pods --watch
 Crash the application by using the `/crash` endpoint.
 
 This time you should only see the pods crashing and restarting. while the connection to the application is still available. This is because the service is connecting to the pods and not directly to a single pod. as its type suggests the service load balances the connection to the pods.
+
+
+## 2. Environment variables with ConfigMaps and Secrets
+
+There are multiple ways to set environment variables in a Kubernetes pod. One way is to set the environment variables in the container definition. Another way is to use a `ConfigMap` or a `Secret`. In this exercise we will explore the different ways to set environment variables in a pod and highlight the differences between them.
+
+### `env` field
+
+One way is to use the `env` field in the container definition.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-container
+    image: my-image
+    env:
+    - name: FOO
+      value: bar
+```
+
+### ConfigMap
+
+A `ConfigMap` is a Kubernetes resource that is used to store configuration data. A `ConfigMap` can be used to store environment variables that are used by multiple pods.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  FOO: bar
+```
+
+To use all set environment variables in a `ConfigMap` in a pod you can use the `envFrom` field in the container definition.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod  
+spec:
+  containers:
+  - name: my-container
+    image: my-image
+    envFrom:
+    - configMapRef:
+      name: my-config
+```
+
+### Secret
+
+A `Secret` is a Kubernetes resource that is used to store sensitive data. A `Secret` can be used to store environment variables that are used by multiple pods. A `Secret` is similar to a `ConfigMap`, but the data in a `Secret` is stored in base64 encoded format.
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secret
+data:
+  FOO: Rk9P
+```
+
+To use all set environment variables in a `Secret` in a pod you can use the `envFrom` field in the container definition.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod  
+spec:
+  containers:
+  - name: my-container
+    image: my-image
+    envFrom:
+    - configMapRef:
+      name: my-secret
+```
 
 ## Bonus: Canary deployment
 

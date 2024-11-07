@@ -18,7 +18,7 @@ In this part we will iterate on the previous exercises and add statefulness and 
     - [A basic PersistentVolumeClaim definition](#a-basic-persistentvolumeclaim-definition)
     - [Creating a PersistentVolumeClaim](#creating-a-persistentvolumeclaim)
     - [Update the stateful set to use the PersistentVolumeClaim](#update-the-stateful-set-to-use-the-persistentvolumeclaim)
-  - [Bonus: Kubernetes resource: NetworkPolicy (docs)](#bonus-kubernetes-resource-networkpolicy-docs)
+  - [Bonus: Kubernetes resource: NetworkPolicy](#bonus-kubernetes-resource-networkpolicy)
     - [A basic NetworkPolicy definition](#a-basic-networkpolicy-definition)
     - [Limiting traffic](#limiting-traffic)
   - [Cleanup](#cleanup)
@@ -59,11 +59,12 @@ kubectl apply -f exercises/part-3/manifest.yaml
 kubectl apply -f exercises/part-3/manifest-kind-ingress.yaml
 ```
 
-The fastapi application is now running in the `kubernetes-ws-3` namespace. 
+The fastapi application is now running in the `kubernetes-ws-3` namespace.
 The fastapi application is for the docker desktop users accessible at `http://localhost:8000`. For the Podman desktop users, the application is accessible at `http://localhost:9090`.
 
-
 ## 2. Kubernetes resource: StatefulSet
+
+Docs: [kubernetes.io](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
 
 A Kubernetes `StatefulSet` is just like a `Deployment` a controller that manages a set of pods. The difference is that a `StatefulSet` is specifically designed for stateful applications. A stateful application is an application that stores data and has a unique identity. Examples of stateful applications are databases, message brokers, and key-value stores.
 
@@ -186,6 +187,8 @@ Sadly the data that was stored in the database is lost. This is because the data
 
 ## 3. Kubernetes resource: PersistentVolumeClaim
 
+Docs: [kubernetes.io](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims)
+
 A `PersistentVolumeClaim` is a Kubernetes resource that is a request for storage it is used to claim storage from the cluster. Which, when storage is available, is bound to a `PersistentVolume` by the cluster's storage provider. All data stored in a `PersistentVolume` is retained when the pod is deleted and is only deleted when the `PersistentVolume` resource is deleted.
 
 ### A basic PersistentVolumeClaim definition
@@ -248,7 +251,9 @@ volumes:
 
 </details>
 
-## Bonus: Kubernetes resource: NetworkPolicy [(docs)](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+## Bonus: Kubernetes resource: NetworkPolicy
+
+Docs: [kubernetes.io](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
 A `NetworkPolicy` is comparable to firewall-rules in a traditional network.
 Configuring a `NetworkPolicy` allows you to restrict the traffic to and from a pod.

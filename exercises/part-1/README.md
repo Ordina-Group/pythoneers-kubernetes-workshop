@@ -22,7 +22,7 @@
     - [Scale the deployment](#scale-the-deployment)
     - [Editing the deployment](#editing-the-deployment)
     - [Crashing the application](#crashing-the-application)
-  - [Bonus InitContainer (docs)](#bonus-initcontainer-docs)
+  - [Bonus InitContainer](#bonus-initcontainer)
 
 ## Prepare the Kubernetes environment
 
@@ -77,8 +77,9 @@ podman build . --tag app:v1
 With podman desktop you will need to push the image to the Kind Cluster. Go to images tab -> locate the image you've build -> triple dots / hamburger menu -> "Push image to Kind cluster"
 ![image](https://github.com/user-attachments/assets/8d4f29de-8c6e-4518-9966-8bb274c42fdc)
 
-
 ## 2. Kubernetes resource: Pod
+
+Docs: [kubernetes.io](https://k8s.io/docs/concepts/workloads/pods/)
 
 A Pod is the smallest and simplest Kubernetes object. It represents a single instance of a running process in your cluster. Pods contain one or more containers, such as Docker containers.
 
@@ -239,12 +240,12 @@ You should see three events when the application has crashed. A `Pulled` event, 
 
 ## 3. Kubernetes resource: Deployment
 
+Docs: [kubernetes.io](https://k8s.io/docs/concepts/workloads/controllers/deployment/)
+
 The pod is a basic building block of Kubernetes. It is not recommended to use pods directly in a production environment. Since they are not very resilient and have little to no self-healing capabilities.
 
 The best and most common way is to let a Kubernetes resource called a `Deployment` manage the pods.
 With a deployment, you can specify how many replicas of a pod you want to run, update the specification of the pod, or even rollback to a previous version of the pods.
-
-<!-- #TODO: add graphics -->
 
 ### Basic Deployment definition
 
@@ -388,7 +389,9 @@ Crash the application by using the `/crash` endpoint.
 This time still only the pod we are port-forwarded to should crash. The other pods should still be running, since no /crash endpoint is called on them.
 But we would like to have a more resilient application. To make sure the application is still available when a pod crashes we can use a Kubernetes resource called a `Service`.
 
-## Bonus InitContainer ([docs](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/))
+## Bonus InitContainer
+
+Docs: [kubernetes.io](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/)
 
 A pod can have multiple containers. One of the containers can be an `InitContainer`. An InitContainer is a container that runs before the application container starts. This can be useful for setting up the environment for the application container. or to wait for a service to be available.
 

@@ -57,6 +57,8 @@ The fastapi application is now running in the `kubernetes-ws-2` namespace. and c
 
 ## 2. Kubernetes resource: Service
 
+Docs: [kubernetes.io](https://kubernetes.io/docs/concepts/services-networking/service/)
+
 To be able to still interact with the application even when a single pod crashes we can use a Kubernetes resource called a `Service`.
 With a service a connection can be made to a set of pods. This way we can make sure we have some kind of fallback mechanism.
 
@@ -152,6 +154,8 @@ kubectl exec -it <pod-name> -- echo $FOO
 ```
 
 ### Kubernetes resources: ConfigMap
+
+Docs: [kubernetes.io](https://kubernetes.io/docs/concepts/configuration/configmap/)
 
 A `ConfigMap` is a Kubernetes resource that is used to store configuration data. A `ConfigMap` can be used to store environment variables, but also be used to mount configuration files in a pod. 
 
@@ -253,6 +257,8 @@ docker-desktop: [http://localhost:8000/static/important-file.txt]
 podman-desktop: [http://localhost:9090/static/important-file.txt]
 
 ### Kubernetes resources: Secret
+
+Docs: [kubernetes.io](https://kubernetes.io/docs/concepts/configuration/secret/)
 
 A `Secret` is a Kubernetes resource that is used to store sensitive data. A `Secret` can be used to store environment variables that are used by multiple pods. A `Secret` is similar to a `ConfigMap`, but the data in a `Secret` is stored in base64 encoded format.
 

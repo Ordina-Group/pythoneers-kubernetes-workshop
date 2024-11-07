@@ -122,11 +122,12 @@ For the following exercises we will created the PersistentVolumeClaim manually. 
 Create a stateful set for the database of the fastapi app. Use the following information to create the stateful set:
 
 - image: `postgres:13.3`
-- environment variables:
+- environment variables trough a configMap:
   - POSTGRES_USER: `postgres`
   - POSTGRES_PASSWORD: `password`
   - POSTGRES_DB: `database`
 - Mount a volume named `data` to the container at the path `/var/lib/postgresql/data`
+
 
 Make use of the following template:
 

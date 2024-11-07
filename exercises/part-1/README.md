@@ -81,7 +81,7 @@ With podman desktop you will need to push the image to the Kind Cluster. Go to i
 
 Docs: [kubernetes.io](https://k8s.io/docs/concepts/workloads/pods/)
 
-A Pod is the smallest and simplest Kubernetes object. It represents a single instance of a running process in your cluster. Pods contain one or more containers, such as Docker containers.
+A Pod is the smallest and simplest Kubernetes object. It represents a single instance of a running process in your cluster. Pods contain one or more containers.
 
 ### Basic Pod definition
 
@@ -359,7 +359,7 @@ Before we continue, we will setup some monitoring to visualize what happens. Use
 kubectl get pods --selector=foo=baz --watch
 ```
 
-The results will be empty since the pods are not labeled with `foo=baz`.
+The results will be empty since the pods are not (yet) labeled with `foo=baz`.
 
 Since the deployment is managing the pods we can easily change the pods that are managed by the deployment. Use the `kubectl edit` command to add a label to the pod template. Add the label `foo=baz` to the pod template.
 
@@ -387,7 +387,8 @@ kubectl get pods --watch
 Crash the application by using the `/crash` endpoint.
 
 This time still only the pod we are port-forwarded to should crash. The other pods should still be running, since no /crash endpoint is called on them.
-But we would like to have a more resilient application. To make sure the application is still available when a pod crashes we can use a Kubernetes resource called a `Service`.
+It would be nice to connect to the other pods of the deployment so that the application can be more resiliant en give the crashing pod time to restart. 
+We will explore more in the next part with a resource called `Service`
 
 ## Bonus InitContainer
 

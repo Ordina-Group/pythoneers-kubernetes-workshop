@@ -1,101 +1,128 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from app.database import SessionLocal
-from app.models import Item
-from app.crud import get_items, get_item, create_item, update_item, delete_item
-from app.models import ItemORM
+import fastapi
+from app import database, models
 
-router = APIRouter()
+router = fastapi.APIRouter(tags=["Supermarket Inventory"])
 
 
-# Dependency to get the database session
-def get_db():
-    """
-    Provides a database session dependency for request handlers.
-
-    Yields:
-        Session: A SQLAlchemy database session object.
-
-    Ensures the database session is closed after the request is completed.
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+class DBNotAvailableError(fastapi.HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=fastapi.status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available",
+        )
 
 
-@router.get("/items", response_model=list[Item], tags=["Supermarket"])
-async def read_items(db: Session = Depends(get_db)):
-    """
-    Retrieve a list of all items from the inventory.
+@router.get("/items")
+async def read_items(
+    db_repo: database.DatabaseRepository = fastapi.Depends(database.DatabaseRepository)
+) -> list[models.Item]:
+    """Retrieve a list of all items from the inventory.
 
     Args:
-        db (Session): Database session dependency.
+        db_repo: Database repository dependency.
+
+    Raises:
+        DBNotAvailableError: If the database is not available.
+
 
     Returns:
         list[Item]: A list of `Item` objects representing items in the inventory.
     """
-    return get_items(db)
+    if not db_repo.connected():
+        raise DBNotAvailableError
+    return db_repo.get_items()
 
 
-@router.get("/items/{item_id}", response_model=Item, tags=["Supermarket"])
-async def read_item(item_id: int, db: Session = Depends(get_db)):
-    """
-    Retrieve a single item by its ID.
+@router.get("/items/{item_id}")
+async def read_item(
+    item_id: int,
+    db_repo: database.DatabaseRepository = fastapi.Depends(database.DatabaseRepository),
+) -> models.Item:
+    """Retrieve a single item by its ID.
 
     Args:
         item_id (int): The unique identifier of the item to retrieve.
-        db (Session): Database session dependency.
+        db_repo: Database repository dependency.
+
+    Raises:
+        DBNotAvailableError: If the database is not available.
 
     Returns:
         Item: An `Item` object representing the requested item, or `None` if not found.
     """
-    return get_item(db, item_id)
+
+    if not db_repo.connected():
+        raise DBNotAvailableError
+    return db_repo.get_item(item_id)
 
 
-@router.post("/items/", response_model=Item, tags=["Supermarket"])
-async def add_item(item: Item, db: Session = Depends(get_db)):
-    """
-    Add a new item to the inventory.
+@router.post("/items/")
+async def add_item(
+    item: models.Item,
+    db_repo: database.DatabaseRepository = fastapi.Depends(database.DatabaseRepository),
+) -> models.Item:
+    """Add a new item to the inventory.
 
     Args:
         item (Item): The `Item` object containing item details.
-        db (Session): Database session dependency.
+        db_repo: Database repository dependency.
+
+    Raises:
+        DBNotAvailableError: If the database is not available.
+
 
     Returns:
         Item: The newly created `Item` object.
     """
-    item_orm = ItemORM(**item.model_dump())  # Convert to ORM instance
-    return create_item(db, item_orm)
+    if not db_repo.connected():
+        raise DBNotAvailableError
+
+    return db_repo.create_item(item)
 
 
-@router.put("/items/{item_id}", response_model=Item, tags=["Supermarket"])
-async def modify_item(item_id: int, updated_item: Item, db: Session = Depends(get_db)):
-    """
-    Update an existing item in the inventory by its ID.
+@router.put("/items/{item_id}")
+async def modify_item(
+    item_id: int,
+    updated_item: models.Item,
+    db_repo: database.DatabaseRepository = fastapi.Depends(database.DatabaseRepository),
+) -> models.Item:
+    """Update an existing item in the inventory by its ID.
 
     Args:
         item_id (int): The unique identifier of the item to update.
         updated_item (Item): The `Item` object with updated details.
-        db (Session): Database session dependency.
+        db_repo: Database repository dependency.
+
+    Raises:
+        DBNotAvailableError: If the database is not available.
 
     Returns:
         Item: The updated `Item` object, or `None` if not found.
     """
-    return update_item(db, item_id, updated_item.model_dump())
+    if not db_repo.connected():
+        raise DBNotAvailableError
+
+    return db_repo.update_item(item_id, updated_item)
 
 
-@router.delete("/items/{item_id}", tags=["Supermarket"])
-async def remove_item(item_id: int, db: Session = Depends(get_db)):
-    """
-    Delete an item from the inventory by its ID.
+@router.delete("/items/{item_id}")
+async def remove_item(
+    item_id: int,
+    db_repo: database.DatabaseRepository = fastapi.Depends(database.DatabaseRepository),
+) -> None:
+    """Delete an item from the inventory by its ID.
 
     Args:
         item_id (int): The unique identifier of the item to delete.
-        db (Session): Database session dependency.
+        db_repo: Database repository dependency.
+
+    Raises:
+        DBNotAvailableError: If the database is not available.
 
     Returns:
         bool: `True` if the item was successfully deleted, otherwise `False`.
     """
-    return delete_item(db, item_id)
+    if not db_repo.connected():
+        raise DBNotAvailableError
+
+    db_repo.delete_item(item_id)

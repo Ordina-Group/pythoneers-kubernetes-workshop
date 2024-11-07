@@ -1,8 +1,10 @@
 from sqlalchemy import Column, Integer, String, Float
 from pydantic import BaseModel
 from typing import Optional
-from app.database import Base
+from sqlalchemy.orm import DeclarativeBase
 
+class Base(DeclarativeBase):
+    """Declarative base class for SQLAlchemy ORM models."""
 
 class ItemORM(Base):
     """

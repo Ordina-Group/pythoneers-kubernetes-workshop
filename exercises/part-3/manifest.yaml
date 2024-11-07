@@ -1,20 +1,3 @@
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: backend-ingress
-spec:
-  rules:
-  - http:
-      paths:
-      - pathType: Prefix
-        path: /
-        backend:
-          service:
-            name: backend-service
-            port:
-              number: 8000
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:

@@ -21,15 +21,19 @@ In this part we will iterate on the previous exercises and add statefulness and 
   - [Bonus: Kubernetes resource: NetworkPolicy (docs)](#bonus-kubernetes-resource-networkpolicy-docs)
     - [A basic NetworkPolicy definition](#a-basic-networkpolicy-definition)
     - [Limiting traffic](#limiting-traffic)
-    - [Seeing double](#seeing-double)
   - [Cleanup](#cleanup)
-  - [Summary](#summary)
 
 ## Prepare the Kubernetes environment
 
+!NOTE Podman Desktop users to remove the ingress resource from the previous exercises, since it will conflict with the one we will add to the namespace of this exercise. To remove the ingress resource use the following command:
+
+```shell
+kubectl delete -f exercises/part-2/manifest-kind-ingress.yaml
+```
+
 Just like in the previous exercises we will create a new namespace to work in. This will prevent pods of different exercises from interfering with each other.
 
-Use the following command to create a namespace named: `kubernetes_ws_2`
+Use the following command to create a namespace named: `kubernetes-ws-3`
 
 ```shell
 kubectl create namespace kubernetes-ws-3
@@ -46,10 +50,18 @@ kubectl config set-context --current --namespace kubernetes-ws-3
 To iterate on the previous exercises we will start with the same starting point. Use the following command to create the starting point:
 
 ```shell
-kubectl apply -f exercises/part-2/manifest.yaml
+kubectl apply -f exercises/part-3/manifest.yaml
 ```
 
-The fastapi application is now running in the `kubernetes-ws-3` namespace. You can access the application by port-forwarding the service to your local machine. just like before using the `port-forward` command
+!NOTE Podman Desktop users need a ingress resource to access the fastapi application. Use the following command to create the ingress resource:
+
+```shell
+kubectl apply -f exercises/part-3/manifest-kind-ingress.yaml
+```
+
+The fastapi application is now running in the `kubernetes-ws-3` namespace. 
+The fastapi application is for the docker desktop users accessible at `http://localhost:8000`. For the Podman desktop users, the application is accessible at `http://localhost:9090`.
+
 
 ## 2. Kubernetes resource: StatefulSet
 
@@ -107,12 +119,12 @@ For the following exercises we will created the PersistentVolumeClaim manually. 
 ### Create a statefulset for the database of the fastapi app
 
 Create a stateful set for the database of the fastapi app. Use the following information to create the stateful set:
-<!-- # TODO: check -->
+
 - image: `postgres:13.3`
 - environment variables:
-  - user: `postgres`
-  - password: `password`
-  - database: `postgres`
+  - POSTGRES_USER: `postgres`
+  - POSTGRES_PASSWORD: `password`
+  - POSTGRES_DB: `database`
 - Mount a volume named `data` to the container at the path `/var/lib/postgresql/data`
 
 Make use of the following template:
@@ -162,7 +174,7 @@ spec:
 
 ### Connecting the backend app to the database
 
-The backend deployment needs a revision to connect to the database. Add the environment variable `DATABASE_URL` to the backend deployment with the following pattern `postgresql://<user>:<password>@db-service:5432/<database>` fill in the correct values used in the statefulSet
+The backend deployment needs a revision to connect to the database. Add the environment variable `DATABASE_URL` to the backend deployment with the following pattern `postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@db-service:5432/<POSTGRES_DB>` fill in the correct values used in the statefulSet
 
 When the backend deployment is updated the fastapi application should be able to connect to the database. Try to create a new item in the fastapi application to see if the connection is working.
 
@@ -192,13 +204,17 @@ spec:
 ```
 
 1. The `accessModes` field is used to specify the access mode of the `PersistentVolumeClaim`. The access mode can be `ReadWriteOnce`, `ReadOnlyMany`, or `ReadWriteMany`. For most use cases `ReadWriteOnce` is sufficient.
-2. The `storage` field is used to specify the size of the `PersistentVolumeClaim`. 
+2. The `storage` field is used to specify the size of the `PersistentVolumeClaim`.
 
 ### Creating a PersistentVolumeClaim
-<!-- #TODO: check -->
-create a `PersistentVolumeClaim` for the database using the following information:
 
-- At least use a minimum of ... of storage
+create a `PersistentVolumeClaim` for the database, its been tested that the db works with a 10Mi volume.
+
+Check with the following command if the `PersistentVolumeClaim` and the `PersistentVolume` are created:
+
+```shell
+kubectl get pvc,pv
+```
 
 ### Update the stateful set to use the PersistentVolumeClaim
 
@@ -206,6 +222,7 @@ Earlier in this exercise we created a volume named `data` in the stateful set de
 
 <details><summary>Tip 1</summary>
 
+This is the chapter in the Kubernetes documentation that explains how to use a `PersistentVolumeClaim` as a volume in a pod:
 [Claims As Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes)
 
 </details>
@@ -230,9 +247,6 @@ volumes:
 ```
 
 </details>
-
-
-
 
 ## Bonus: Kubernetes resource: NetworkPolicy [(docs)](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
 
@@ -299,9 +313,9 @@ spec:
 
 ### Limiting traffic
 
-Create only the fastapi application is allowed to make inbound traffic to the database. The database should not be able to make outbound traffic to any other pod in the namespace.
+Create only the fastapi application is allowed to make inbound traffic to the database. The database should not be able to make outbound connections.
 
-To ensure your network policy is working correctly connect the terminal of the database pod and try to ping the fastapi pod. The ping should not be successful.
+To ensure your network policy is working correctly connect the terminal of the database pod and try to connect to the fastapi application or any website with `ping`. The connection should be refused.
 
 <details><summary>Tip 1: How to connect to the terminal of a pod</summary>
 
@@ -311,10 +325,6 @@ kubectl exec -it <statefulSet-name> -- sh
 
 </details>
 
-### Seeing double
-
-Create a second deployment of both the fastapi application and the database in the same namespace. By creating a NetworkPolicy, Restrict the traffic between the two deployments. Each fastapi application should only be able to connect to its own database.
-
 ## Cleanup
 
 If you want to clean up the namespace you can use the following command:
@@ -322,7 +332,3 @@ If you want to clean up the namespace you can use the following command:
 ```shell
 kubectl delete namespace kubernetes-ws-3
 ```
-
-## Summary
-
-<!-- #TODO: Create a small summery of the current exercises -->

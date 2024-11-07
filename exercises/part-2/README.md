@@ -5,11 +5,12 @@
 - [Exercises part 2: Services and ConfigMaps \& Secrets](#exercises-part-2-services-and-configmaps--secrets)
   - [Table of contents](#table-of-contents)
   - [Prepare the Kubernetes environment](#prepare-the-kubernetes-environment)
-  - [1. Kubernetes resource: Service](#1-kubernetes-resource-service)
+  - [1. Prepare the starting point](#1-prepare-the-starting-point)
+  - [2. Kubernetes resource: Service](#2-kubernetes-resource-service)
     - [A basic service definition](#a-basic-service-definition)
     - [Creating a service](#creating-a-service)
     - [Crashing the application](#crashing-the-application)
-  - [2. Environment variables with ConfigMaps and Secrets](#2-environment-variables-with-configmaps-and-secrets)
+  - [3. Environment variables with ConfigMaps and Secrets](#3-environment-variables-with-configmaps-and-secrets)
     - [`env` field](#env-field)
     - [ConfigMap](#configmap)
     - [Secret](#secret)
@@ -20,34 +21,38 @@
 
 ## Prepare the Kubernetes environment
 
-Before starting the assignments, it is useful to create a `namespace`.
-We won't delve too deeply into this for the workshop, but in short, it ensures that you have a
-separate environment where you can `deploy` your Kubernetes resources for this part of
-the workshop. A major advantage is that it is also easy to clean up!
+Before starting the next assignment, we will create a new namespace to work in.
+This way we can keep the resources we create separated from the resources created in the previous exercises.
 
-Use the following command to create a namespace named: `kubernetes_ws_2`
+Use the following command to create a namespace named: `kubernetes-ws-2`
 
 ```shell
 kubectl create namespace kubernetes-ws-2
 ```
 
-> namespace/kubernetes-ws-1 created
-
 With the following command you can set the context of your kubectl to the just created namespace. This way you don't have to specify the namespace in every command.
 
 ```shell
-kubectl config set-context --current --namespace kubernetes-ws-1
+kubectl config set-context --current --namespace kubernetes-ws-2
 ```
 
-if you make use of the Kind cluster trough Podman Desktop, one more step is needed to have the same experience as with Docker Desktop.
+## 1. Prepare the starting point
+
+To iterate on the previous exercises we will start with the same starting point. Use the following command to create the starting point:
 
 ```shell
-kubectl apply -f exercises/part-1/manifest.yaml
+kubectl apply -f exercises/part-2/manifest.yaml
 ```
 
-This will make sure we can connect to the service we will create later on.
+!NOTE Podman Desktop users need a ingress resource to have a similar experience as Docker Desktop users. The ingress resource is created for you with the following command:
 
-## 1. Kubernetes resource: Service
+```shell
+kubectl apply -f exercises/part-2/manifest-kind-ingress.yaml
+```
+
+The fastapi application is now running in the `kubernetes-ws-2` namespace. and can be connected to with the `port-forward` command.
+
+## 2. Kubernetes resource: Service
 
 To be able to still interact with the application even when a single pod crashes we can use a Kubernetes resource called a `Service`.
 With a service a connection can be made to a set of pods. This way we can make sure we have some kind of fallback mechanism.
@@ -130,7 +135,7 @@ Crash the application by using the `/crash` endpoint.
 This time you should only see the pods crashing and restarting. while the connection to the application is still available. This is because the service is connecting to the pods and not directly to a single pod. as its type suggests the service load balances the connection to the pods.
 
 
-## 2. Environment variables with ConfigMaps and Secrets
+## 3. Environment variables with ConfigMaps and Secrets
 
 There are multiple ways to set environment variables in a Kubernetes pod. One way is to set the environment variables in the container definition. Another way is to use a `ConfigMap` or a `Secret`. In this exercise we will explore the different ways to set environment variables in a pod and highlight the differences between them.
 

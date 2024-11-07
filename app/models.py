@@ -1,6 +1,6 @@
 import pydantic
-import sqlalchemy
 import sqlalchemy.orm
+import sqlalchemy
 
 
 class Base(sqlalchemy.orm.DeclarativeBase):

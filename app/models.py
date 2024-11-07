@@ -1,10 +1,11 @@
-from sqlalchemy import Column, Integer, String, Float
-from pydantic import BaseModel
-from typing import Optional
-from sqlalchemy.orm import DeclarativeBase
+import pydantic
+import sqlalchemy
+import sqlalchemy.orm
 
-class Base(DeclarativeBase):
+
+class Base(sqlalchemy.orm.DeclarativeBase):
     """Declarative base class for SQLAlchemy ORM models."""
+
 
 class ItemORM(Base):
     """
@@ -12,22 +13,22 @@ class ItemORM(Base):
 
     Attributes:
         __tablename__ (str): The name of the database table, "inventory".
-        id (Column): The primary key for the item, an integer.
-        name (Column): The name of the item, a string with a maximum length of 20 characters.
-        description (Column): A description of the item, a string with a maximum length of 100 characters.
-        price (Column): The price of the item, stored as a floating-point number.
-        quantity (Column): The quantity of the item in stock, an integer.
+        id (sqlalchemy.Column): The primary key for the item, an integer.
+        name (sqlalchemy.Column): The name of the item, a string with a maximum length of 20 characters.
+        description (sqlalchemy.Column): A description of the item, a string with a maximum length of 100 characters.
+        price (sqlalchemy.Column): The price of the item, stored as a floating-point number.
+        quantity (sqlalchemy.Column): The quantity of the item in stock, an integer.
     """
 
     __tablename__ = "inventory"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(length=20), index=True)
-    description = Column(String(length=100), index=True)
-    price = Column(Float, index=True)
-    quantity = Column(Integer, index=True)
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, index=True)
+    name = sqlalchemy.Column(sqlalchemy.String(length=20), index=True)
+    description = sqlalchemy.Column(sqlalchemy.String(length=100), index=True)
+    price = sqlalchemy.Column(sqlalchemy.Float, index=True)
+    quantity = sqlalchemy.Column(sqlalchemy.Integer, index=True)
 
 
-class Item(BaseModel):
+class Item(pydantic.BaseModel):
     """
     Pydantic model representing an item in the inventory.
 
@@ -44,7 +45,7 @@ class Item(BaseModel):
 
     id: int
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     price: float
     quantity: int
 

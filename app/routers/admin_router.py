@@ -6,7 +6,7 @@ from fastapi import APIRouter
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
-@router.get("/crash", description="Crash the entire service in 3 seconds.")
+@router.get("/crash")
 async def crash_app():
     """
     Initiates a countdown and crashes the application after 3 seconds.

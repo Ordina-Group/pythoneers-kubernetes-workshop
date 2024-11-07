@@ -6,10 +6,10 @@ from fastapi import APIRouter
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
-@router.get("/crash", description="Crash the entire service in 5 seconds.")
+@router.get("/crash", description="Crash the entire service in 3 seconds.")
 async def crash_app():
     """
-    Initiates a countdown and crashes the application after 5 seconds.
+    Initiates a countdown and crashes the application after 3 seconds.
 
     This endpoint can be used for testing purposes to simulate a crash.
     It will log a countdown message every second and, upon reaching
@@ -18,8 +18,8 @@ async def crash_app():
     Raises:
         SystemExit: The application will exit upon receiving the SIGTERM signal.
     """
-    # Countdown from 5 seconds before crashing
-    for i in range(5, 0, -1):
+    # Countdown from 3 seconds before crashing
+    for i in range(3, 0, -1):
         print(f"Application will crash in {i} seconds...")
         await asyncio.sleep(1)  # Wait for 1 second
 

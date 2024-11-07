@@ -51,8 +51,7 @@ RUN pip install -U pip \
     && pip install --no-index --no-deps /builder/wheelhouse/*.whl
 
 # Copy the application code into the container
-COPY app /src/app
-COPY ico/ /ico
+COPY app app
 
 # Expose the correct port
 EXPOSE 8000

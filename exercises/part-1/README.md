@@ -11,6 +11,7 @@
     - [Creating a Pod](#creating-a-pod)
     - [Listing resources](#listing-resources)
     - [Get the generated definition of the pod](#get-the-generated-definition-of-the-pod)
+    - [Labeling a Kubernetes resource](#labeling-a-kubernetes-resource)
     - [Editing a Kubernetes resource](#editing-a-kubernetes-resource)
     - [Connecting to the application of the pod](#connecting-to-the-application-of-the-pod)
     - [A crashed pod](#a-crashed-pod)
@@ -19,9 +20,9 @@
     - [Basic Deployment definition](#basic-deployment-definition)
     - [Creating the application within a deployment](#creating-the-application-within-a-deployment)
     - [Scale the deployment](#scale-the-deployment)
+    - [Editing the deployment](#editing-the-deployment)
     - [Crashing the application](#crashing-the-application)
-  - [Cleanup](#cleanup)
-  - [Summary](#summary)
+  - [Bonus InitContainer (docs)](#bonus-initcontainer-docs)
 
 ## Prepare the Kubernetes environment
 
@@ -146,31 +147,41 @@ To get the full definitie Kubernetes made for you can perform the following comm
 kubectl get pod/backend --output yaml
 ```
 
-### Editing a Kubernetes resource
+### Labeling a Kubernetes resource
 
-With the `kubectl edit` command you can edit the definition of a resource. This can be useful when you want to change something in the pod definition. Note not all fields are changeable.
+Labels are key-value pairs that are attached to objects, such as pods. They are used to organize and select subsets of objects. They are handy for you as a developer but is also used by Kubernetes to select objects.
 
-Use the kubectl edit command to edit the pod you've created earlier. add a label to the pod with the key `foo` and the value `bar`.
+add a label to the pod with the key `foo` and the value `bar`. You can use the `kubectl label` command to add a label to the pod.
+
+Run the following command to check if the label has been added.
+
+```shell
+kubectl get pod/backend --selector=foo=bar
+```
+
 
 <details><summary>Spoiler!</summary>
 
 ```shell
-kubectl edit pod/backend
+kubectl label pod/backend foo=bar
 ```
-
-Labels can be added to the metadata field of the pod definition.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: backend
-  labels:
-    foo: bar
-...
-```
-
 </details>
+
+### Editing a Kubernetes resource
+
+When there is more to change, use the `kubectl edit` command.
+
+With the `kubectl edit` command you can edit the definition of a resource. This can be useful when you want to change something in the pod definition. Note not all fields are changeable.
+
+Use the kubectl edit command to edit the pod you've created earlier. Change the label foo=bar to bar=foo.
+
+!NOTE `kubectl edit` will open the editor defined by your KUBE_EDITOR, or EDITOR environment variables, or fall back to 'vi' for Linux or 'notepad' for Windows. If you want to use a different editor you can set the environment variable.
+
+Run the following command to check if the label has been changed.
+
+```shell
+kubectl get pod/backend --selector=bar=foo
+```
 
 ### Connecting to the application of the pod
 
@@ -303,8 +314,6 @@ For the pod specification, you can use look at the definition of the pod that yo
 
 <details><summary>Spoiler! </summary>
 
-<!-- # TODO: check the full definition of the deployment -->
-
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -333,13 +342,27 @@ spec:
 
 A major advantage of using a deployment is that you can easily scale the number of replicas of the pod. Make use of the `kubectl scale` command to scale your deployment to `5` replicas.
 
-<details><summary>Spoiler! </summary>
+<details><summary>Spoiler!</summary>
 
 ```shell
 kubectl scale deployment/backend --replicas=5
 ```
 
 </details>
+
+### Editing the deployment
+
+Before we continue, we will setup some monitoring to visualize what happens. Use the following command to watch the pods.
+
+```shell
+kubectl get pods --selector=foo=baz --watch
+```
+
+The results will be empty since the pods are not labeled with `foo=baz`.
+
+Since the deployment is managing the pods we can easily change the pods that are managed by the deployment. Use the `kubectl edit` command to add a label to the pod template. Add the label `foo=baz` to the pod template.
+
+You should see all the pods that are managed by the deployment to update to fit the new pod template.
 
 ### Crashing the application
 
@@ -365,14 +388,30 @@ Crash the application by using the `/crash` endpoint.
 This time still only the pod we are port-forwarded to should crash. The other pods should still be running, since no /crash endpoint is called on them.
 But we would like to have a more resilient application. To make sure the application is still available when a pod crashes we can use a Kubernetes resource called a `Service`.
 
-## Cleanup
+## Bonus InitContainer ([docs](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/))
 
+A pod can have multiple containers. One of the containers can be an `InitContainer`. An InitContainer is a container that runs before the application container starts. This can be useful for setting up the environment for the application container. or to wait for a service to be available.
+
+Add an `InitContainer` to the pod definition of the deployment. The `InitContainer` should run a very important process with the following command command `echo "Hello from InitContainer && sleep 10"`.
+
+<details><summary>Spoiler!</summary>
+
+add the following to the pod template of the deployment.
+
+```yaml
+    ...
+    spec:
+      initContainers:
+      - name: init
+        image: busybox
+        command: ['sh', '-c', 'echo "Hello from InitContainer && sleep 10"']
+      containers:
+        ...
+```
+
+</details>
 If you want to clean up the namespace you can use the following command:
 
 ```shell
 kubectl delete namespace kubernetes-ws-1
 ```
-
-## Summary
-
-<!-- #TODO: Create a small summery of the current extercises -->

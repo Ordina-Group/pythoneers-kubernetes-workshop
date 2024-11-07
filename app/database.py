@@ -48,6 +48,8 @@ class DatabaseRepository:
             return session.query(models.ItemORM).filter(models.ItemORM.id == item_id).first()
 
     def create_item(self, item: models.Item) -> models.Item:
+        if self.item_exists(item.id):
+            raise ValueError(f"Item with id {item.id} already exists")
         with self.session() as session:
             db_item = models.ItemORM(**item.model_dump())
             session.add(db_item)
@@ -55,6 +57,11 @@ class DatabaseRepository:
             session.refresh(db_item)
             return item
 
+    
+    def item_exists(self, item_id: int) -> bool:
+        with self.session() as session:
+            return session.query(models.ItemORM).filter(models.ItemORM.id == item_id).first() is not None
+    
     def update_item(self, item_id: int, item: models.Item) -> models.Item:
         with self.session() as session:
             db_item = (

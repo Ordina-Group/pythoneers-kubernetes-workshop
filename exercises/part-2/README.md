@@ -10,14 +10,17 @@
     - [A basic service definition](#a-basic-service-definition)
     - [Creating a service](#creating-a-service)
     - [Crashing the application](#crashing-the-application)
-  - [3. Environment variables with ConfigMaps and Secrets](#3-environment-variables-with-configmaps-and-secrets)
+  - [3. Environment variables](#3-environment-variables)
     - [`env` field](#env-field)
-    - [ConfigMap](#configmap)
-    - [Secret](#secret)
+    - [Kubernetes resources: ConfigMap](#kubernetes-resources-configmap)
+      - [A basic `ConfigMap` definition](#a-basic-configmap-definition)
+      - [Using a `ConfigMap`](#using-a-configmap)
+      - [Mounting a `ConfigMap`](#mounting-a-configmap)
+    - [Kubernetes resources: Secret](#kubernetes-resources-secret)
+      - [Using a `Secret`](#using-a-secret)
   - [Bonus: Canary deployment](#bonus-canary-deployment)
     - [Concept of a canary deployment](#concept-of-a-canary-deployment)
   - [Cleanup](#cleanup)
-  - [Summary](#summary)
 
 ## Prepare the Kubernetes environment
 
@@ -134,32 +137,25 @@ Crash the application by using the `/crash` endpoint.
 
 This time you should only see the pods crashing and restarting. while the connection to the application is still available. This is because the service is connecting to the pods and not directly to a single pod. as its type suggests the service load balances the connection to the pods.
 
+## 3. Environment variables
 
-## 3. Environment variables with ConfigMaps and Secrets
-
-There are multiple ways to set environment variables in a Kubernetes pod. One way is to set the environment variables in the container definition. Another way is to use a `ConfigMap` or a `Secret`. In this exercise we will explore the different ways to set environment variables in a pod and highlight the differences between them.
+Environment variables are used to pass configuration data to an application. In Kubernetes, environment variables can be set in multiple ways. In this exercise, we will look at three ways to set environment variables.
 
 ### `env` field
 
-One way is to use the `env` field in the container definition.
+One way is to use the `env` field in the container definition. This way you can set environment variables for a single container within a pod. Go to the following [Kubernetes documentation](https://kubernetes.io/docs/tasks/inject-data-application/define-environment-variable-container/) and edit the deployment to set the environment variable `FOO` to `bar` trough the `env` field.
 
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-pod
-spec:
-  containers:
-  - name: my-container
-    image: my-image
-    env:
-    - name: FOO
-      value: bar
+Verify the environment variable is set by using the following command:
+
+```shell
+kubectl exec -it <pod-name> -- echo $FOO
 ```
 
-### ConfigMap
+### Kubernetes resources: ConfigMap
 
-A `ConfigMap` is a Kubernetes resource that is used to store configuration data. A `ConfigMap` can be used to store environment variables that are used by multiple pods.
+A `ConfigMap` is a Kubernetes resource that is used to store configuration data. A `ConfigMap` can be used to store environment variables, but also be used to mount configuration files in a pod. 
+
+#### A basic `ConfigMap` definition
 
 ```yaml
 apiVersion: v1
@@ -186,9 +182,81 @@ spec:
       name: my-config
 ```
 
-### Secret
+or you can use the `env` field in the container definition to use a single environment variable from the `ConfigMap`.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod  
+spec:
+  containers:
+  - name: my-container
+    image: my-image
+    env:
+    - name: FOO
+      valueFrom:
+        configMapKeyRef:
+          name: my-config
+          key: FOO
+```
+
+#### Using a `ConfigMap`
+
+Replace the environment variable in the deployment with a `ConfigMap`.
+
+Verify the environment variable is still set by using the following command:
+
+```shell
+kubectl exec -it <pod-name> -- echo $FOO
+```
+
+#### Mounting a `ConfigMap`
+
+Sometimes it can be handy to mount a `ConfigMap` as a file in a pod. This way you can use the configuration data in a file. To mount a `ConfigMap` as a file in a pod you can use the `volumes` field in the pod definition.
+
+with the following configuration the `ConfigMap` variable `FOO` is mounted as a file in the `/etc/config` directory in the pod.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+data:
+  FOO: bar
+```
+
+```yaml
+...
+spec:
+  containers:
+  - name: my-container
+    image: my-image
+    volumeMounts:
+    - name: config-files
+      mountPath: /etc/config
+  volumes:
+    - name: config-files
+      configMap:
+        name: my-config
+...
+```
+
+
+Mount an important file in the pod with the following specification in the deployment:
+
+- `ConfigMap` key-value pair: `important-file.txt: "This is an important file"`
+- The file should be mounted at the path `src/app/static/`
+
+Verify the file is mounted in the pod by going to the running application and check if the file is available at the path `/static/important-file.txt`.
+docker-desktop: [http://localhost:8000/static/important-file.txt]
+podman-desktop: [http://localhost:9090/static/important-file.txt]
+
+### Kubernetes resources: Secret
 
 A `Secret` is a Kubernetes resource that is used to store sensitive data. A `Secret` can be used to store environment variables that are used by multiple pods. A `Secret` is similar to a `ConfigMap`, but the data in a `Secret` is stored in base64 encoded format.
+
+Secrets are obscured in the cluster instead of encrypted. This still means that its not the most secure way to store sensitive data. But it is a better way than storing it in plain text. Secrets should always stay in the cluster and should never be shared with the outside world. One way that clusters keep secrets secure is that is only encoded in base64 in memory and not on disk.
 
 ```yaml
 apiVersion: v1
@@ -211,8 +279,16 @@ spec:
   - name: my-container
     image: my-image
     envFrom:
-    - configMapRef:
+    - secretRef:
       name: my-secret
+```
+
+#### Using a `Secret`
+
+The variable `FOO` is actually a very sensitive variable and should be stored in a `Secret`. Replace the `ConfigMap` with a `Secret` and verify the environment variable is still set by using the following command:
+
+```shell
+kubectl exec -it <pod-name> -- echo $FOO
 ```
 
 ## Bonus: Canary deployment
@@ -250,7 +326,3 @@ kubectl delete namespace kubernetes-ws-2
 ```shell
 kubectl delete -f exercises/part-1/manifest.yaml
 ```
-
-## Summary
-
-<!-- #TODO: Create a small summery of the current extercises -->

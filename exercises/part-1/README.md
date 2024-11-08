@@ -222,7 +222,7 @@ The pod has been restarted by Kubernetes. This is because the pod has crashed an
 
 #### Troubleshooting
 
-The have a better understanding of what happend we can look at the logs of the pod.
+To have a better understanding of what happened we can look at the logs of the pod.
 
 ```shell
 kubectl logs pod/backend

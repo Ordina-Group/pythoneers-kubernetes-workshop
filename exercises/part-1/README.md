@@ -156,7 +156,7 @@ add a label to the pod with the key `foo` and the value `bar`. You can use the `
 Run the following command to check if the label has been added.
 
 ```shell
-kubectl get pod/backend --selector=foo=bar
+kubectl get pod --selector=foo=bar
 ```
 
 

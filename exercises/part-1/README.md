@@ -207,7 +207,7 @@ keep a close eye on the pod status while crashing the application.
 kubectl get pods --watch
 ```
 
-Navigate to the swagger ui of the application [localhost:8000/api-docs](localhost:8000/api-docs)
+Navigate to the swagger ui of the application [localhost:8000/docs](localhost:8000/docs)
 
 There are a few endpoints created within the fastapi application.
 Crash the application by using the `/crash` endpoint.

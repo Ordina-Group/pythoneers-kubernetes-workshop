@@ -186,7 +186,7 @@ spec:
     image: my-image
     envFrom:
     - configMapRef:
-      name: my-config
+        name: my-config
 ```
 
 or you can use the `env` field in the container definition to use a single environment variable from the `ConfigMap`.

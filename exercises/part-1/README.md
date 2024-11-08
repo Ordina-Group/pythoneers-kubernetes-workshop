@@ -59,7 +59,7 @@ or
 podman images
 ```
 
-<details> <summary>Spoiler! </summary> 
+<details> <summary>Spoiler!</summary>
 
 ```shell
 docker build . --tag app:v1 
@@ -70,7 +70,6 @@ or
 ```shell
 podman build . --tag app:v1 
 ```
-
 
 </details>
 
@@ -110,11 +109,11 @@ These are the key parts of the pod definition:
 
 ### Creating a Pod
 
-There are a few ways of creating a pod. One of the fastest ways is using the command `kubectl run` make use of this command to create a pod with the image you created earlier (`app:v1`).
+There are a few ways of creating a pod. One of the fastest ways is using the command `kubectl run` make use of this command to create a pod with the image you created earlier.  `app:v1` for docker desktop and `localhost/app:v1` for podman desktop and.
 
 <details>
 
-<summary>Tip 1 </summary>
+<summary>Tip 1</summary>
 
 Don't forget to use the commandline argument `--port` to expose the port opened by the application.
 
@@ -387,7 +386,7 @@ kubectl get pods --watch
 Crash the application by using the `/crash` endpoint.
 
 This time still only the pod we are port-forwarded to should crash. The other pods should still be running, since no /crash endpoint is called on them.
-It would be nice to connect to the other pods of the deployment so that the application can be more resiliant en give the crashing pod time to restart. 
+It would be nice to connect to the other pods of the deployment so that the application can be more resiliant en give the crashing pod time to restart.
 We will explore more in the next part with a resource called `Service`
 
 ## Bonus InitContainer

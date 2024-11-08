@@ -60,7 +60,7 @@ kubectl apply -f exercises/part-3/manifest-kind-ingress.yaml
 ```
 
 The fastapi application is now running in the `kubernetes-ws-3` namespace.
-The fastapi application is for the docker desktop users accessible at `http://localhost:8000`. For the Podman desktop users, the application is accessible at `http://localhost:9090`.
+The fastapi application is for the docker desktop users accessible at `http://localhost:8001`. For the Podman desktop users, the application is accessible at `http://localhost:9090`.
 
 ## 2. Kubernetes resource: StatefulSet
 

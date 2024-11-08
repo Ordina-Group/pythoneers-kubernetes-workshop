@@ -49,6 +49,8 @@ kubectl config set-context --current --namespace kubernetes-ws-3
 
 To iterate on the previous exercises we will start with the same starting point. Use the following command to create the starting point:
 
+!NOTE Podman Desktop users need to change the image to `localhost/app:v1` in the manifest.yaml file.
+
 ```shell
 kubectl apply -f exercises/part-3/manifest.yaml
 ```

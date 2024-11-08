@@ -43,11 +43,14 @@ kubectl config set-context --current --namespace kubernetes-ws-2
 
 To iterate on the previous exercises we will start with the same starting point. Use the following command to create the starting point:
 
+!NOTE Podman Desktop users need to change the image to `localhost/app:v1` in the manifest.yaml file.
+
 ```shell
 kubectl apply -f exercises/part-2/manifest.yaml
 ```
 
-!NOTE Podman Desktop users need a ingress resource to have a similar experience as Docker Desktop users. The ingress resource is created for you with the following command:
+!NOTE Podman Desktop users need a ingress resource to ha
+ve a similar experience as Docker Desktop users. The ingress resource is created for you with the following command:
 
 ```shell
 kubectl apply -f exercises/part-2/manifest-kind-ingress.yaml
